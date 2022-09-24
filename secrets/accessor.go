@@ -1,8 +1,6 @@
-package main
+package awssecrets
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -19,7 +17,7 @@ type SSM struct {
 	client ssmiface.SSMAPI
 }
 
-func Sessions() (*session.Session, error) {
+func sessions() (*session.Session, error) {
 	key := "AWS_REGION"
 	awsRegion, ok := os.LookupEnv(key)
 	if !ok {
@@ -34,9 +32,9 @@ func Sessions() (*session.Session, error) {
 	return sess, err
 }
 
-func NewSSMClient() *SSM {
+func newSSMClient() *SSM {
 	// Create AWS Session
-	sess, err := Sessions()
+	sess, err := sessions()
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -46,7 +44,8 @@ func NewSSMClient() *SSM {
 	return ssmsvc
 }
 
-func (ssmsvc *SSM) GetValues() (map[string]string, error) {
+func GetValues() (map[string]string, error) {
+	ssmsvc := newSSMClient()
 	ssmOpts := ssm.GetParametersByPathInput{
 		Path:           aws.String("/"),
 		WithDecryption: aws.Bool(true),
@@ -62,17 +61,4 @@ func (ssmsvc *SSM) GetValues() (map[string]string, error) {
 		output[key] = *parameter.Value
 	}
 	return output, nil
-}
-
-func main() {
-	ssmsvc := NewSSMClient()
-	result, err := ssmsvc.GetValues()
-	if err != nil {
-		log.Fatal(err)
-	}
-	jsonString, err := json.MarshalIndent(result, "", "  ")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(string(jsonString))
 }
