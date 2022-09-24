@@ -3,7 +3,6 @@ package awssecrets
 import (
 	"log"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -56,9 +55,7 @@ func GetValues() (map[string]string, error) {
 	}
 	output := make(map[string]string)
 	for _, parameter := range params.Parameters {
-		s := strings.Split(*parameter.Name, "/")
-		key := s[len(s)-1]
-		output[key] = *parameter.Value
+		output[*parameter.Name] = *parameter.Value
 	}
 	return output, nil
 }
